@@ -1,0 +1,438 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- XML Schema Definition for PBR Material Importer - Schema Version: 1.0 -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning" elementFormDefault="qualified" attributeFormDefault="unqualified" vc:minVersion="1.1">
+	<xs:element name="PbrMaterialDescriptions">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="Material" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>Materials to be created based on the Principled Node.
+
+Documentation:
+https://docs.blender.org/manual/en/dev/render/cycles/nodes/types/shaders/principled.html</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:all>
+							<xs:element name="Base_Color" type="InputImageOrTuple3plus1" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Base Color property of the Principled Node:
+Diffuse or metal surface color.</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="Subsurface" type="InputImageNonColorOrFloat" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Subsurface property of the Principled Node:
+Mix between diffuse and subsurface scattering.</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="Subsurface_Radius" type="InputImageOrTuple3" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Subsurface Radius property of the Principled Node:
+Average scattering distance for RGB channels.</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="Subsurface_Color" type="InputImageOrTuple3plus1" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Subsurface Color property of the Principled Node:
+Subsurface scattering base color.</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="Metallic" type="InputImageNonColorOrFloat" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Metallic property of the Principled Node:
+Mix between dielectric (diffuse and specular with possible transparency) and metallic (fully specular with complex Fresnel).</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="Specular" type="InputImageNonColorOrFloat" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Specular property of the Principled Node:
+Amount of dielectric specular reflection. Specifies facing (along normal) reflectivity in the most common 0 - 8% range.</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="Specular_Tint" type="InputImageNonColorOrFloat" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Specular Tint property of the Principled Node:
+Tints the facing specular reflection using the base color, while glancing reflection remains white.</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="Roughness" type="InputImageNonColorOrFloat" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Roughness property of the Principled Node:
+Specifies microfacet roughness of the surface for diffuse and specular reflection.</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="Anisotropic" type="InputImageNonColorOrFloat" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Anisotropic property of the Principled Node:
+Amount of anisotropy for specular reflection.</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="Anisotropic_Rotation" type="InputImageNonColorOrFloat" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Anisotropic Rotation property of the Principled Node:
+Rotates the direction of anisotropy, with 1.0 going full circle.</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="Sheen" type="InputImageNonColorOrFloat" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Sheen property of the Principled Node:
+Amount of soft velvet like reflection near edges, for simulating materials such as cloth.</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="Sheen_Tint" type="InputImageNonColorOrFloat" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Sheen Tint property of the Principled Node:
+Mix between white and using base color for sheen reflection.</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="Clearcoat" type="InputImageNonColorOrFloat" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Clearcoat property of the Principled Node:
+Extra white specular layer on top of others. This is useful for materials like car paint and the like.</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="Clearcoat_Roughness" type="InputImageNonColorOrFloat" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Clearcoat Roughness property of the Principled Node:
+Roughness of clear coat specular.</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="IOR" type="InputImageNonColorOrFloat" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>IOR property of the Principled Node:
+Index of refraction for transmission.</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="Transmission" type="InputImageNonColorOrFloat" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Transmission property of the Principled Node:
+Mix between fully opaque surface at zero and fully glass like transmission at one.</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="Normal" type="InputImage" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Normal property of the Principled Node:
+Controls the normals of the base layers.</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="Clearcoat_Normal" type="InputImage" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Clearcoat Normal property of the Principled Node:
+Controls the normals of the Clearcoat layer.</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="Tangent" type="InputTangent" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Tangent property of the Principled Node:
+Controls the tangent for the Anisotropic layer.</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="Emission" type="InputEmission" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Emission added using the Emission Node.
+
+Documentation:
+https://docs.blender.org/manual/en/dev/render/cycles/nodes/types/shaders/emission.html</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="Opacity" type="InputImageNonColorOrFloat" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Opacity added using the Transparent Node.
+
+Documentation:
+https://docs.blender.org/manual/en/dev/render/cycles/nodes/types/shaders/transparent.html</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+						</xs:all>
+						<xs:attribute name="name" type="xs:string" use="required">
+							<xs:annotation>
+								<xs:documentation>The name to be assigned to the material.</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="version" use="required">
+				<xs:annotation>
+					<xs:documentation>Version of the used Schema</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:complexType name="InputImageOrTuple3">
+		<xs:all>
+			<xs:element name="Image" type="Image" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Representation of:
+Image Texture Node connected to an input of the Principled Node
+
+Documentation:
+https://docs.blender.org/manual/en/dev/render/cycles/nodes/types/textures/image.html
+
+Description:
+The Image Texture is used to add an image file as a texture.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:all>
+		<xs:attribute name="value" type="Tuple3"/>
+	</xs:complexType>
+	<xs:complexType name="InputImageOrTuple3plus1">
+		<xs:all>
+			<xs:element name="Image" type="Image" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Representation of:
+Image Texture Node connected to an input of the Principled Node
+
+Documentation:
+https://docs.blender.org/manual/en/dev/render/cycles/nodes/types/textures/image.html
+
+Description:
+The Image Texture is used to add an image file as a texture.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:all>
+		<xs:attribute name="value" type="Tuple3plus1"/>
+	</xs:complexType>
+	<xs:complexType name="InputImageNonColorOrFloat">
+		<xs:all>
+			<xs:element name="Image" type="Image" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Representation of:
+Image Texture Node connected to an input of the Principled Node
+
+Documentation:
+https://docs.blender.org/manual/en/dev/render/cycles/nodes/types/textures/image.html
+
+Description:
+The Image Texture is used to add an image file as a texture.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:all>
+		<xs:attribute name="value" type="xs:float"/>
+	</xs:complexType>
+	<xs:complexType name="InputImage">
+		<xs:all>
+			<xs:element name="Image" type="Image">
+				<xs:annotation>
+					<xs:documentation>Representation of:
+Image Texture Node connected to an input of the Principled Node
+
+Documentation:
+https://docs.blender.org/manual/en/dev/render/cycles/nodes/types/textures/image.html
+
+Description:
+The Image Texture is used to add an image file as a texture.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:all>
+	</xs:complexType>
+	<xs:complexType name="InputEmission">
+		<xs:all>
+			<xs:element name="Image" type="Image" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Representation of:
+Image Texture Node connected to an input of the Principled Node
+
+Documentation:
+https://docs.blender.org/manual/en/dev/render/cycles/nodes/types/textures/image.html
+
+Description:
+The Image Texture is used to add an image file as a texture.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:all>
+		<xs:attribute name="value" type="Tuple3plus1">
+			<xs:annotation>
+				<xs:documentation>Color of the emitted light.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="strength" type="xs:float">
+			<xs:annotation>
+				<xs:documentation>Strength of the emitted light. For point and area lamps, the unit is Watts. For materials, a value of 1.0 will ensure that the object in the image has the exact same color as the Color input, i.e. make it ‘shadeless’.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="InputTangent">
+		<xs:choice>
+			<xs:element name="TangentNode" type="TangentNode">
+				<xs:annotation>
+					<xs:documentation>Representation of:
+Tangent Node connected to the Tangent input of the Principled Node
+
+Documentation:
+https://docs.blender.org/manual/en/dev/render/cycles/nodes/types/input/tangent.html
+
+Description:
+The Tangent node generates a tangent direction for the Anisotropic BSDF.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:choice>
+	</xs:complexType>
+	<xs:complexType name="Image">
+		<xs:annotation>
+			<xs:documentation>Representation of:
+Image Texture Node connected to an input of the Principled Node
+
+Documentation:
+https://docs.blender.org/manual/en/dev/render/cycles/nodes/types/textures/image.html
+
+Description:
+The Image Texture is used to add an image file as a texture.</xs:documentation>
+		</xs:annotation>
+		<xs:all>
+			<xs:element name="Mapping" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Representation of:
+Mapping Node connected to the Vector input of the Image Texture Node
+
+Documentation:
+https://docs.blender.org/manual/en/dev/render/blender_render/materials/nodes/types/vector/mapping.html
+
+Description:
+Essentially mapping node allows the user to modify a mapping of system of 3D-coordinates. Mapping can be rotated and clamped if desired.
+
+Typically used for modifying texture coordinates.
+
+The controls of the node have been ordered in X, Y, Z order. Clamping can be enabled by Min and Max.</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:all>
+						<xs:element name="TextureCoordinate">
+							<xs:annotation>
+								<xs:documentation>Representation of:
+Texture Coordinate Node connected to the Vector input of the Mapping Node
+
+Documentation:
+https://docs.blender.org/manual/en/dev/render/cycles/nodes/types/input/texture_coordinate.html
+
+Description:
+The Texture Coordinate node is commonly used for the coordinates of textures, typically used as inputs for the Vector input for texture nodes.</xs:documentation>
+							</xs:annotation>
+							<xs:complexType>
+								<xs:attribute name="output">
+									<xs:annotation>
+										<xs:documentation>Output of the Texture Coordinate Node to use as input for the Mapping Node</xs:documentation>
+									</xs:annotation>
+									<xs:simpleType>
+										<xs:restriction base="xs:string">
+											<xs:enumeration value="Generated"/>
+											<xs:enumeration value="Normal"/>
+											<xs:enumeration value="UV"/>
+											<xs:enumeration value="Object"/>
+											<xs:enumeration value="Camera"/>
+											<xs:enumeration value="Window"/>
+											<xs:enumeration value="Reflection"/>
+										</xs:restriction>
+									</xs:simpleType>
+								</xs:attribute>
+							</xs:complexType>
+						</xs:element>
+					</xs:all>
+					<xs:attribute name="vector_type">
+						<xs:annotation>
+							<xs:documentation>Type of vector that the mapping transforms. Supported Vector types are:
+- TEXTURE
+- POINT
+- VECTOR
+- NORMAL</xs:documentation>
+						</xs:annotation>
+						<xs:simpleType>
+							<xs:restriction base="xs:string">
+								<xs:enumeration value="TEXTURE"/>
+								<xs:enumeration value="POINT"/>
+								<xs:enumeration value="VECTOR"/>
+								<xs:enumeration value="NORMAL"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:attribute>
+					<xs:attribute name="location" type="Tuple3">
+						<xs:annotation>
+							<xs:documentation>Transform position vector.
+Use Tuple notation.
+E.g.: (0.0, 200, 0.0)</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+					<xs:attribute name="rotation" type="Tuple3">
+						<xs:annotation>
+							<xs:documentation>Transform rotation vector.
+Use Tuple notation.
+E.g.: (0.0, 200, 0.0)</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+					<xs:attribute name="scale" type="Tuple3">
+						<xs:annotation>
+							<xs:documentation>Transform scale vector.
+Use Tuple notation.
+E.g.: (0.0, 200, 0.0)</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+					<xs:attribute name="min" type="Tuple3">
+						<xs:annotation>
+							<xs:documentation>Minimum clipping value.
+Use Tuple notation.
+E.g.: (0.0, 200, 0.0)</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+					<xs:attribute name="max" type="Tuple3">
+						<xs:annotation>
+							<xs:documentation>Maximum clipping value.
+Use Tuple notation.
+E.g.: (0.0, 200, 0.0)</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+				</xs:complexType>
+			</xs:element>
+		</xs:all>
+		<xs:attribute name="path" use="required">
+			<xs:annotation>
+				<xs:documentation>Absolute or relative path to the image file.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="TangentNode">
+		<xs:annotation>
+			<xs:documentation>Representation of:
+Tangent Node connected to the Tangent input of the Principled Node
+
+Documentation:
+https://docs.blender.org/manual/en/dev/render/cycles/nodes/types/input/tangent.html
+
+Description:
+The Tangent node generates a tangent direction for the Anisotropic BSDF.</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="axis">
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="X"/>
+					<xs:enumeration value="Y"/>
+					<xs:enumeration value="Z"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="direction_type">
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="UV_MAP"/>
+					<xs:enumeration value="RADIAL"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="uv_map" type="xs:string"/>
+	</xs:complexType>
+	<xs:simpleType name="Tuple3">
+		<xs:annotation>
+			<xs:documentation>String representing a 3-tuple with float values e.g. for 3d vectors</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:pattern value="\(\s*[-+]?[0-9]+(\.[0-9]+)?\s*,\s*[-+]?[0-9]+(\.[0-9]+)?\s*,\s*[-+]?[0-9]+(\.[0-9]+)?\s*\)"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="Tuple3plus1">
+		<xs:annotation>
+			<xs:documentation>String representing a 3-tuple or 4-tuple with float values e.g. for RGB or RGBA values</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:pattern value="\(\s*[-+]?[0-9]+(\.[0-9]+)?\s*,\s*[-+]?[0-9]+(\.[0-9]+)?\s*,\s*[-+]?[0-9]+(\.[0-9]+)?\s*(,\s*[-+]?[0-9]+(\.[0-9]+)?\s*)?\)"/>
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>

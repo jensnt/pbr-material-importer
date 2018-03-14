@@ -1,0 +1,326 @@
+# PBR Material Importer Add-on for Blender
+# Copyright (C) 2018  Jens Neitzel
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+bl_info = {
+    "name": "PBR Material Importer",
+    "description": "Import Principled BSDF / PBR based materials from xml descriptions",
+    "author": "Jens Neitzel",
+    "version": (1, 0),
+    "blender": (2, 79, 0),
+    "location": "File > Import > PBR Material Description (.xml)",
+    "warning": "",
+    "support": "COMMUNITY",
+    "category": "Import-Export"
+}
+
+import bpy
+import os
+import xml.etree.ElementTree as etree
+import math
+
+class pbrMaterial():
+    _SUPPORTED_PROPS = ["Base_Color", "Subsurface", "Subsurface_Radius", "Subsurface_Color", "Metallic", "Specular", "Specular_Tin", "Roughness", "Anisotropic", "Anisotropic_Rotation", "Sheen", "Sheen_Tint", "Clearcoat", "Clearcoat_Roughness", "IOR", "Transmission", "Normal", "Clearcoat_Normal", "Tangent", "Emission", "Opacity"]
+    _NON_STANDARD_PROPS   = ["Normal", "Clearcoat_Normal", "Tangent", "Emission", "Opacity"]
+
+    _DICT_PROP_PBR_NODE_INPUT = {"Base_Color"           : "Base Color",
+                                 "Subsurface"           : "Subsurface",
+                                 "Subsurface_Radius"    : "Subsurface Radius",
+                                 "Subsurface_Color"     : "Subsurface Color",
+                                 "Metallic"             : "Metallic",
+                                 "Specular"             : "Specular",
+                                 "Specular_Tin"         : "Specular Tin",
+                                 "Roughness"            : "Roughness",
+                                 "Anisotropic"          : "Anisotropic",
+                                 "Anisotropic_Rotation" : "Anisotropic Rotation",
+                                 "Sheen"                : "Sheen",
+                                 "Sheen_Tint"           : "Sheen Tint",
+                                 "Clearcoat"            : "Clearcoat",
+                                 "Clearcoat_Roughness"  : "Clearcoat Roughness",
+                                 "IOR"                  : "IOR",
+                                 "Transmission"         : "Transmission",
+                                 "Normal"               : "Normal",
+                                 "Clearcoat_Normal"     : "Clearcoat Normal",
+                                 "Tangent"              : "Tangent",
+                                 "Emission"             : "None",
+                                 "Opacity"              : "None"}
+
+    def __init__(self, xmlMat, filepath, replace_existing):
+        self.xmlMat = xmlMat
+        self.xmlFilepath = filepath
+        self.mat = None
+        if replace_existing == True:
+            for existingMat in bpy.data.materials:
+                if existingMat.name == self.xmlMat.get('name'):
+                    print("Replacing Material: %s" % (existingMat.name))
+                    self.mat = existingMat
+                    break
+        if self.mat == None:
+            print("Creating Material: %s" % (self.xmlMat.get('name')))
+            self.mat = bpy.data.materials.new(name=self.xmlMat.get('name'))
+        self.mat.use_nodes = True
+        
+        ## Remove all nodes in the materials node tree
+        for node in self.mat.node_tree.nodes:
+            self.mat.node_tree.nodes.remove(node)
+        
+        ## Create and connect basic nodes
+        self.nodePbr = self.mat.node_tree.nodes.new(type='ShaderNodeBsdfPrincipled')
+        self.nodePbr.location = (700,560)
+        self.nodeMatOut = self.mat.node_tree.nodes.new(type='ShaderNodeOutputMaterial')
+        self.nodeMatOut.location = (1000,560)
+        self.mat.node_tree.links.new(self.nodePbr.outputs["BSDF"], self.nodeMatOut.inputs["Surface"])
+        self.nodeEmissionAdd = None
+        
+        ## Create Image nodes
+        self.imgNodes = []
+        for prop in self._SUPPORTED_PROPS:
+            matProperty = self.xmlMat.find(prop)
+            if (matProperty != None):
+                imgPath = self._getImgPathOfProp(matProperty)
+                if (imgPath != None) and (self._getImgNodeMatchingProp(matProperty) == None):
+                    self.imgNodes.append(nodeTexImage(self.xmlFilepath, self.mat, matProperty.find('Image')))
+                    self.imgNodes[-1].imgTexNodeObj.color_space = self._getDefaultColorSpace(prop)
+        for i in range(0, len(self.imgNodes)):
+            self.imgNodes[i].setLocation((0,(-300*i)+(len(self.imgNodes)*300/2)+300))
+            
+        for prop in self._SUPPORTED_PROPS:
+            matProperty = self.xmlMat.find(prop)
+            if (matProperty != None):
+                self._setupProperty(matProperty)
+    
+    def _addNormalMapNode(self, xmlProp, nodePropImg):
+        nodeNormalMap = self.mat.node_tree.nodes.new(type='ShaderNodeNormalMap')
+        nodeNormalMap.location = (250,nodePropImg.location[1])
+        self.mat.node_tree.links.new(nodePropImg.outputs["Color"], nodeNormalMap.inputs["Color"])
+        self.mat.node_tree.links.new(nodeNormalMap.outputs["Normal"], self.nodePbr.inputs[self._DICT_PROP_PBR_NODE_INPUT[xmlProp.tag]])
+    
+    def _addEmissionNodes(self, xmlProp, nodePropImg):
+        self.nodeEmissionAdd = self.mat.node_tree.nodes.new(type='ShaderNodeAddShader')
+        self.nodeEmissionAdd.location = (1000,560)
+        self.nodeEmission = self.mat.node_tree.nodes.new(type='ShaderNodeEmission')
+        self.nodeEmission.location = (700,0)
+        self.nodeMatOut.location = (1300,560)  ## Move Output Node more to the right.
+        if self._hasAllowedAttributeDefaultValue(xmlProp):
+            self.nodeEmission.inputs["Color"].default_value = eval(xmlProp.get('value'))
+        if nodePropImg != None:
+            self.mat.node_tree.links.new(nodePropImg.outputs["Color"], self.nodeEmission.inputs["Color"])
+        if xmlProp.get('strength') != None:
+            self.nodeEmission.inputs["Strength"].default_value = eval(xmlProp.get('strength'))
+        self.mat.node_tree.links.new(self.nodeEmission.outputs["Emission"], self.nodeEmissionAdd.inputs[1])
+        self.mat.node_tree.links.new(self.nodePbr.outputs["BSDF"], self.nodeEmissionAdd.inputs[0])
+        self.mat.node_tree.links.new(self.nodeEmissionAdd.outputs["Shader"], self.nodeMatOut.inputs["Surface"])
+    
+    def _addOpacityNodes(self, xmlProp, nodePropImg):
+        self.nodeOpacityMix = self.mat.node_tree.nodes.new(type='ShaderNodeMixShader')
+        self.nodeOpacityMix.location = (1300,560)
+        self.nodeTransparent = self.mat.node_tree.nodes.new(type='ShaderNodeBsdfTransparent')
+        self.nodeTransparent.location = (1000,660)
+        self.nodeMatOut.location = (1600,560)  ## Move Output Node more to the right.
+        if self._hasAllowedAttributeDefaultValue(xmlProp):
+            self.nodeOpacityMix.inputs[0].default_value = eval(xmlProp.get('value'))
+        if nodePropImg != None:
+            self.nodeOpacityInvert = self.mat.node_tree.nodes.new(type='ShaderNodeInvert')
+            self.nodeOpacityInvert.location = (700,-140)
+            self.nodeOpacityInvert.inputs[0].default_value = 0
+            self.mat.node_tree.links.new(nodePropImg.outputs["Color"], self.nodeOpacityInvert.inputs["Color"])
+            self.mat.node_tree.links.new(self.nodeOpacityInvert.outputs["Color"], self.nodeOpacityMix.inputs[0])
+        if self.nodeEmissionAdd != None:
+            self.mat.node_tree.links.new(self.nodeEmissionAdd.outputs["Shader"], self.nodeOpacityMix.inputs[2])
+        else:
+            self.mat.node_tree.links.new(self.nodePbr.outputs["BSDF"], self.nodeOpacityMix.inputs[2])
+        self.mat.node_tree.links.new(self.nodeTransparent.outputs["BSDF"], self.nodeOpacityMix.inputs[1])
+        self.mat.node_tree.links.new(self.nodeOpacityMix.outputs["Shader"], self.nodeMatOut.inputs["Surface"])
+    
+    def _addTangentNodes(self, xmlProp):
+        xmlTangentNode = xmlProp.find('TangentNode')
+        if xmlTangentNode != None:
+            self.nodeTangent = self.mat.node_tree.nodes.new(type='ShaderNodeTangent')
+            self.nodeTangent.location = (0, self.imgNodes[-1].imgTexNodeObj.location[1] - 300)
+            self.mat.node_tree.links.new(self.nodeTangent.outputs["Tangent"], self.nodePbr.inputs["Tangent"])
+            if xmlTangentNode.get('axis') != None:
+                self.nodeTangent.axis = xmlTangentNode.get('axis')
+            if xmlTangentNode.get('direction_type') != None:
+                self.nodeTangent.direction_type = xmlTangentNode.get('direction_type')
+            if xmlTangentNode.get('uv_map') != None:
+                self.nodeTangent.uv_map = xmlTangentNode.get('uv_map')
+        
+    def _setupProperty(self, xmlProp):
+        if self._isSupportedProp(xmlProp):
+            if self._hasAllowedAttributeImage(xmlProp):
+                nodePropImg = self._getImgNodeMatchingProp(xmlProp).imgTexNodeObj
+                if self._isNormalProp(xmlProp):
+                    self._addNormalMapNode(xmlProp, nodePropImg)
+                if self._isEmissionProp(xmlProp):
+                    self._addEmissionNodes(xmlProp, nodePropImg)
+                if self._isOpacityProp(xmlProp):
+                    self._addOpacityNodes(xmlProp, nodePropImg)
+                if self._isStandardProp(xmlProp):
+                    self.mat.node_tree.links.new(nodePropImg.outputs["Color"], self.nodePbr.inputs[self._DICT_PROP_PBR_NODE_INPUT[xmlProp.tag]])
+            elif self._hasAllowedAttributeDefaultValue(xmlProp):
+                if self._isEmissionProp(xmlProp):
+                    self._addEmissionNodes(xmlProp, None)
+                if self._isOpacityProp(xmlProp):
+                    self._addOpacityNodes(xmlProp, None)
+                if self._isStandardProp(xmlProp):
+                    self.nodePbr.inputs[self._DICT_PROP_PBR_NODE_INPUT[xmlProp.tag]].default_value = eval(xmlProp.get('value'))
+            elif self._isTangentProp(xmlProp):
+                self._addTangentNodes(xmlProp)
+            else:
+                print("Property \"%s\" found in material \"%s\" has no allowed attribute!" % (xmlProp.tag, self.xmlMat.tag))
+        else:
+            print("Unsupported Property \"%s\" found in material \"%s\"!" % (xmlProp.tag, self.xmlMat.tag))
+    
+    def _getImgPathOfProp(self, xmlProp):
+        if self._hasAllowedAttributeImage(xmlProp):
+            return os.path.normpath(os.path.join(os.path.dirname(self.xmlFilepath), xmlProp.find('Image').get('path')))
+        else:
+            return None
+    
+    def _getImgNodeMatchingProp(self, xmlProp):
+        return next((x for x in self.imgNodes if self._matchImgNodeProp(x,xmlProp)), None)
+    
+    def _matchImgNodeProp(self, imgNode, xmlProp):
+        propColorSpace = self._getDefaultColorSpace(xmlProp.tag)
+        return (imgNode.imagePath == self._getImgPathOfProp(xmlProp)) and (imgNode.imgTexNodeObj.color_space == propColorSpace)
+    
+    def _isSupportedProp(self, xmlProp):
+        return (xmlProp.tag in self._SUPPORTED_PROPS)
+
+    def _isStandardProp(self, xmlProp):
+        return (xmlProp.tag not in self._NON_STANDARD_PROPS)
+
+    def _isNormalProp(self, xmlProp):
+        return (xmlProp.tag == "Normal") or (xmlProp.tag == "Clearcoat_Normal")
+
+    def _isTangentProp(self, xmlProp):
+        return (xmlProp.tag == "Tangent")
+
+    def _isEmissionProp(self, xmlProp):
+        return (xmlProp.tag == "Emission")
+
+    def _isOpacityProp(self, xmlProp):
+        return (xmlProp.tag == "Opacity")
+
+    def _isImgAllowedProp(self, xmlProp):
+        return self._isSupportedProp(xmlProp) and (xmlProp.tag != "Tangent")
+
+    def _isValueAllowedProp(self, xmlProp):
+        return self._isSupportedProp(xmlProp) and (xmlProp.tag != "Normal") and (xmlProp.tag != "Clearcoat_Normal") and (xmlProp.tag != "Tangent")
+    
+    def _hasAllowedAttributeImage(self, xmlProp):
+        propImage = xmlProp.find('Image')
+        if propImage != None:
+            return self._isImgAllowedProp(xmlProp) and (propImage.get('path') != None)
+    
+    def _hasAllowedAttributeDefaultValue(self, xmlProp):
+        return (self._isValueAllowedProp(xmlProp) and xmlProp.get('value') != None)
+    
+    def _getDefaultColorSpace(self, prop):
+        if (prop == "Base_Color") or (prop == "Subsurface_Color") or (prop == "Emission"):
+            return 'COLOR'
+        else:
+            return 'NONE'
+
+class nodeTexImage():
+    def __init__(self, xmlFilepath, bpyMaterial, xmlImageElement):
+        self.xmlFilepath = xmlFilepath
+        self.mat = bpyMaterial
+        self.imagePath = os.path.normpath(os.path.join(os.path.dirname(self.xmlFilepath), xmlImageElement.get('path')))
+        self.imgTexNodeObj = self.mat.node_tree.nodes.new(type='ShaderNodeTexImage')
+        self.imgTexNodeObj.image = bpy.data.images.load(self.imagePath)
+        
+        self.xmlMapping = xmlImageElement.find('Mapping')
+        self.xmlTextureCoordinate = None
+        self.mappingNodeObj = None
+        self.texCoordNodeObj = None
+        if self.xmlMapping != None:
+            self.xmlTextureCoordinate = self.xmlMapping.find('TextureCoordinate')
+        if self.xmlTextureCoordinate != None:
+            texCoordOutput = self.xmlTextureCoordinate.get('output')
+            if texCoordOutput == None:
+                texCoordOutput = "UV"
+            self.mappingNodeObj = self.mat.node_tree.nodes.new(type='ShaderNodeMapping')
+            self.texCoordNodeObj = self.mat.node_tree.nodes.new(type='ShaderNodeTexCoord')
+            self.mat.node_tree.links.new(self.texCoordNodeObj.outputs[texCoordOutput], self.mappingNodeObj.inputs["Vector"])
+            self.mat.node_tree.links.new(self.mappingNodeObj.outputs["Vector"], self.imgTexNodeObj.inputs["Vector"])
+            if self.xmlMapping.get('vector_type') != None:
+                self.mappingNodeObj.vector_type = self.xmlMapping.get('vector_type')
+            if self.xmlMapping.get('location') != None:
+                self.mappingNodeObj.translation = eval(self.xmlMapping.get('location'))
+            if self.xmlMapping.get('rotation') != None:
+                rotX = math.radians(eval(self.xmlMapping.get('rotation'))[0])
+                rotY = math.radians(eval(self.xmlMapping.get('rotation'))[1])
+                rotZ = math.radians(eval(self.xmlMapping.get('rotation'))[2])
+                self.mappingNodeObj.rotation = (rotX,rotY,rotZ)
+            if self.xmlMapping.get('scale') != None:
+                self.mappingNodeObj.scale = eval(self.xmlMapping.get('scale'))
+            if self.xmlMapping.get('min') != None:
+                self.mappingNodeObj.use_min = True
+                self.mappingNodeObj.min = eval(self.xmlMapping.get('min'))
+            if self.xmlMapping.get('max') != None:
+                self.mappingNodeObj.use_max = True
+                self.mappingNodeObj.max = eval(self.xmlMapping.get('max'))
+        
+    def setLocation(self, location):
+        self.imgTexNodeObj.location = location
+        if self.mappingNodeObj != None:
+            self.mappingNodeObj.location = (location[0]-420,location[1])
+        if self.texCoordNodeObj != None:
+            self.texCoordNodeObj.location = (location[0]-660,location[1])
+
+class PbrMaterialImporter(bpy.types.Operator):
+    """PBR Material Importer"""
+    bl_idname = "pbr_material_importer.import"
+    bl_label = "Import PBR Materials from XML"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    filepath = bpy.props.StringProperty(subtype='FILE_PATH')
+    filter_glob = bpy.props.StringProperty(default="*.xml", options={'HIDDEN'})
+    replace_existing = bpy.props.BoolProperty(name="Replace existing Materials",
+                                              description="Existing Materials with the same name as the imported ones will be replaced",
+                                              default=False)
+    
+    def execute(self, context):
+        # Create new materials from XML file
+        print("Importing from file: %s" % (self.filepath))
+        pbrMaterials = []
+        root = etree.parse(self.filepath).getroot()
+        version = root.get('version')
+        if version == "1.0":
+            for elemMaterial in root.findall('Material'):
+                pbrMaterials.append(pbrMaterial(elemMaterial, self.filepath, self.replace_existing))
+        else:
+            print("XML has unsupported version: %s\nSupported Versions are: 1.0" % (version))
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        wm.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+def menu_import(self, context):
+    self.layout.operator(PbrMaterialImporter.bl_idname, text="PBR Material Description (.xml)")
+
+def register():
+    bpy.utils.register_class(PbrMaterialImporter)
+    bpy.types.INFO_MT_file_import.append(menu_import)
+
+def unregister():
+    bpy.utils.unregister_class(PbrMaterialImporter)
+    bpy.types.INFO_MT_file_import.remove(menu_import)
+
+if __name__ == "__main__":
+    register()

@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<!-- These textures are kindly provided by StruffelProductions on http://www.cc0textures.com
+under the Creative Commons CC0 License: https://creativecommons.org/publicdomain/zero/1.0/ -->
+<PbrMaterialDescriptions version="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="PbrMaterialDescriptions.xsd">
+    <Material name="Fabric03">
+        <Base_Color><Image path="./Fabric03/Fabric03_col.jpg"/></Base_Color>
+        <Normal><Image path="./Fabric03/Fabric03_nrm.jpg"/></Normal>
+        <Roughness><Image path="./Fabric03/Fabric03_rgh.jpg"/></Roughness>
+        <Sheen value="1.0"/>
+    </Material>
+    <Material name="Ground08">
+        <Base_Color><Image path="./Ground08/Ground08_col.jpg"/></Base_Color>
+        <Normal><Image path="./Ground08/Ground08_nrm.jpg"/></Normal>
+        <Roughness><Image path="./Ground08/Ground08_rgh.jpg"/></Roughness>
+    </Material>
+    <Material name="Planks02">
+        <Base_Color><Image path="./Planks02/Planks02_col.jpg"/></Base_Color>
+        <Normal><Image path="./Planks02/Planks02_nrm.jpg"/></Normal>
+        <Roughness><Image path="./Planks02/Planks02_rgh.jpg"/></Roughness>
+    </Material>
+    <Material name="Bricks05">
+        <Base_Color>
+            <Image path="./Bricks05/Bricks05_col.jpg">
+                <Mapping vector_type="POINT" scale="(0.5, 0.5, 0.5)">
+                    <TextureCoordinate output="UV"/>
+                </Mapping>
+            </Image>
+        </Base_Color>
+        <Normal>
+            <Image path="./Bricks05/Bricks05_nrm.jpg">
+                <Mapping vector_type="POINT" scale="(0.5, 0.5, 0.5)">
+                    <TextureCoordinate output="UV"/>
+                </Mapping>
+            </Image>
+        </Normal>
+        <Roughness>
+            <Image path="./Bricks05/Bricks05_rgh.jpg">
+                <Mapping vector_type="POINT" scale="(0.5, 0.5, 0.5)">
+                    <TextureCoordinate output="UV"/>
+                </Mapping>
+            </Image>
+        </Roughness>
+    </Material>
+</PbrMaterialDescriptions>

@@ -17,10 +17,20 @@ To install the Add-on you need [Blender](https://www.blender.org/) in version 2.
 
 When importing materials with the same name as already existing ones in your project, a number will be added as a suffix to the imported material names by default.
 
-If instead you want to replace existing materials with the same name, you have the option to check the "Replace existing Materials" check box in the importer dialog:  
+If instead you want to replace existing materials with the same name, you have the option to check the "Replace existing Materials" check box in the importer dialog:
+
 ![Replace existing Materials](/images/replace-existing-materials.png)
 
 ## Creating Material Description XML files
+
+The basic structure you need to create looks like this:
+
+```
+<?xml version="1.0"?>
+<PbrMaterialDescriptions version="1.0">
+    <Material name="My Material"/>
+</PbrMaterialDescriptions>
+```
 
 The following properties can be defined as child elements for materials:
 
@@ -48,12 +58,14 @@ The following properties can be defined as child elements for materials:
 
 For those properties supporting it:
 
-A property value can be defined by adding it as an attribute to the property element:  
+A value for a property can be defined by adding it as an attribute to the property element:  
 ```<Base_Color value="(0.72, 0.22, 0.09)"/>```
 
-To define an Image Texture Node as input for a property an "Image" child element can be added to the property element including a "path" attribute pointing to the texture file:  
-```<Image path="./Bricks05/Bricks05_col.jpg">```  
-The path must be realtive to the XML file.
+To define an Image Texture Node as input for a property, an "Image" child element can be added to the property element including a "path" attribute pointing to the texture file:  
+```<Image path="./Bricks05/Bricks05_col.jpg"/>```  
+The path must be realtive to the XML file or absolute.
 
 For more options and details please refer to the Schema Definition:
 [PbrMaterialDescriptions.xsd](/PbrMaterialDescriptions.xsd)
+
+You can find an interactive visual representation of the schema [here](http://visualxsd.com/Home/LoadSavedSchema/7f98008d06ef70fc3fcaa7f90d53e62174b97bcf).

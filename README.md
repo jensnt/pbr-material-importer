@@ -63,9 +63,9 @@ A value for a property can be defined by adding it as an attribute to the proper
 
 To define an Image Texture Node as input for a property, an "Image" child element can be added to the property element including a "path" attribute pointing to the texture file:  
 ```<Image path="./Bricks05/Bricks05_col.jpg"/>```  
-The path must be realtive to the XML file or absolute.
+The path must be relative to the XML file or absolute.
 
 For more options and details please refer to the Schema Definition:
 [PbrMaterialDescriptions.xsd](/PbrMaterialDescriptions.xsd)
 
-You can find an interactive visual representation of the schema [here](http://visualxsd.com/Home/LoadSavedSchema/7f98008d06ef70fc3fcaa7f90d53e62174b97bcf).
+You can find an interactive visual representation of the schema [here](http://visualxsd.com/Home/LoadSavedSchema/7f98008d06ef70fc3fcaa7f90d53e62174b97bcf) on visualxsd.com.

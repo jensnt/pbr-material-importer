@@ -18,7 +18,7 @@ bl_info = {
     "name": "PBR Material Importer",
     "description": "Import Principled BSDF / PBR based materials from xml descriptions",
     "author": "Jens Neitzel",
-    "version": (1, 0),
+    "version": (1, 1),
     "blender": (2, 79, 0),
     "location": "File > Import > PBR Material Description (.xml)",
     "warning": "",
@@ -30,10 +30,11 @@ import bpy
 import os
 import xml.etree.ElementTree as etree
 import math
+import re
 
 class pbrMaterial():
-    _SUPPORTED_PROPS = ["Base_Color", "Subsurface", "Subsurface_Radius", "Subsurface_Color", "Metallic", "Specular", "Specular_Tin", "Roughness", "Anisotropic", "Anisotropic_Rotation", "Sheen", "Sheen_Tint", "Clearcoat", "Clearcoat_Roughness", "IOR", "Transmission", "Normal", "Clearcoat_Normal", "Tangent", "Emission", "Opacity"]
-    _NON_STANDARD_PROPS   = ["Normal", "Clearcoat_Normal", "Tangent", "Emission", "Opacity"]
+    _SUPPORTED_PROPS = ["Base_Color", "Subsurface", "Subsurface_Radius", "Subsurface_Color", "Metallic", "Specular", "Specular_Tin", "Roughness", "Anisotropic", "Anisotropic_Rotation", "Sheen", "Sheen_Tint", "Clearcoat", "Clearcoat_Roughness", "IOR", "Transmission", "Normal", "Clearcoat_Normal", "Tangent", "Emission", "Opacity", "Displacement"]
+    _NON_STANDARD_PROPS   = ["Normal", "Clearcoat_Normal", "Tangent", "Emission", "Opacity", "Displacement"]
 
     _DICT_PROP_PBR_NODE_INPUT = {"Base_Color"           : "Base Color",
                                  "Subsurface"           : "Subsurface",
@@ -167,6 +168,9 @@ class pbrMaterial():
                     self._addEmissionNodes(xmlProp, nodePropImg)
                 if self._isOpacityProp(xmlProp):
                     self._addOpacityNodes(xmlProp, nodePropImg)
+                if self._isDisplacementProp(xmlProp):
+                    self.mat.node_tree.links.new(nodePropImg.outputs["Color"], self.nodeMatOut.inputs["Displacement"])
+                    self.mat.cycles.displacement_method = 'TRUE'
                 if self._isStandardProp(xmlProp):
                     self.mat.node_tree.links.new(nodePropImg.outputs["Color"], self.nodePbr.inputs[self._DICT_PROP_PBR_NODE_INPUT[xmlProp.tag]])
             elif self._hasAllowedAttributeDefaultValue(xmlProp):
@@ -200,7 +204,7 @@ class pbrMaterial():
         return (xmlProp.tag in self._SUPPORTED_PROPS)
 
     def _isStandardProp(self, xmlProp):
-        return (xmlProp.tag not in self._NON_STANDARD_PROPS)
+        return self._isSupportedProp(xmlProp) and (xmlProp.tag not in self._NON_STANDARD_PROPS)
 
     def _isNormalProp(self, xmlProp):
         return (xmlProp.tag == "Normal") or (xmlProp.tag == "Clearcoat_Normal")
@@ -214,11 +218,15 @@ class pbrMaterial():
     def _isOpacityProp(self, xmlProp):
         return (xmlProp.tag == "Opacity")
 
+    def _isDisplacementProp(self, xmlProp):
+        return (xmlProp.tag == "Displacement")
+
     def _isImgAllowedProp(self, xmlProp):
         return self._isSupportedProp(xmlProp) and (xmlProp.tag != "Tangent")
 
     def _isValueAllowedProp(self, xmlProp):
-        return self._isSupportedProp(xmlProp) and (xmlProp.tag != "Normal") and (xmlProp.tag != "Clearcoat_Normal") and (xmlProp.tag != "Tangent")
+        return (self._isSupportedProp(xmlProp) and (xmlProp.tag != "Normal") and (xmlProp.tag != "Clearcoat_Normal")
+                                               and (xmlProp.tag != "Tangent") and (xmlProp.tag != "Displacement"))
     
     def _hasAllowedAttributeImage(self, xmlProp):
         propImage = xmlProp.find('Image')
@@ -287,6 +295,11 @@ class PbrMaterialImporter(bpy.types.Operator):
     bl_label = "Import PBR Materials from XML"
     bl_options = {'REGISTER', 'UNDO'}
     
+    _MIN_MAJOR_XML_VERSION = 1
+    _MIN_MINOR_XML_VERSION = 0
+    _MAX_MAJOR_XML_VERSION = 1
+    _MAX_MINOR_XML_VERSION = 1
+    
     filepath = bpy.props.StringProperty(subtype='FILE_PATH')
     filter_glob = bpy.props.StringProperty(default="*.xml", options={'HIDDEN'})
     replace_existing = bpy.props.BoolProperty(name="Replace existing Materials",
@@ -298,18 +311,28 @@ class PbrMaterialImporter(bpy.types.Operator):
         print("Importing from file: %s" % (self.filepath))
         pbrMaterials = []
         root = etree.parse(self.filepath).getroot()
-        version = root.get('version')
-        if version == "1.0":
+        if self._isSupportedVersion(root.get('version')):
             for elemMaterial in root.findall('Material'):
                 pbrMaterials.append(pbrMaterial(elemMaterial, self.filepath, self.replace_existing))
-        else:
-            print("XML has unsupported version: %s\nSupported Versions are: 1.0" % (version))
         return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.window_manager
         wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
+
+    def _isSupportedVersion(self, version):
+        if (version != None):
+            match = re.match("^([0-9]+)\.([0-9]+)$", version)
+            if (match != None):
+                major = int(match.group(1))
+                minor = int(match.group(2))
+                if ((major >= self._MIN_MAJOR_XML_VERSION) and (major <= self._MAX_MAJOR_XML_VERSION) and
+                    (minor >= self._MIN_MINOR_XML_VERSION) and (minor <= self._MAX_MINOR_XML_VERSION)):
+                    return True
+        print("XML has unsupported version: \"%s\"\nSupported Versions are: %s.%s to %s.%s" % (version,
+        self._MIN_MAJOR_XML_VERSION, self._MIN_MINOR_XML_VERSION, self._MAX_MAJOR_XML_VERSION, self._MAX_MINOR_XML_VERSION))
+        return False
 
 def menu_import(self, context):
     self.layout.operator(PbrMaterialImporter.bl_idname, text="PBR Material Description (.xml)")

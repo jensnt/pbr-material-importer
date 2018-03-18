@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!-- These textures are kindly provided by StruffelProductions on http://www.cc0textures.com
 under the Creative Commons CC0 License: https://creativecommons.org/publicdomain/zero/1.0/ -->
-<PbrMaterialDescriptions version="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="PbrMaterialDescriptions.xsd">
+<PbrMaterialDescriptions version="1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="PbrMaterialDescriptions.xsd">
     <Material name="Fabric03">
         <Base_Color><Image path="./Fabric03/Fabric03_col.jpg"/></Base_Color>
         <Normal><Image path="./Fabric03/Fabric03_nrm.jpg"/></Normal>
@@ -33,6 +33,29 @@ under the Creative Commons CC0 License: https://creativecommons.org/publicdomain
                 </Mapping>
             </Image>
         </Normal>
+        <Roughness>
+            <Image path="./Bricks05/Bricks05_rgh.jpg">
+                <Mapping vector_type="POINT" scale="(0.5, 0.5, 0.5)">
+                    <TextureCoordinate output="UV"/>
+                </Mapping>
+            </Image>
+        </Roughness>
+    </Material>
+    <Material name="Bricks05 Displacement">
+        <Base_Color>
+            <Image path="./Bricks05/Bricks05_col.jpg">
+                <Mapping vector_type="POINT" scale="(0.5, 0.5, 0.5)">
+                    <TextureCoordinate output="UV"/>
+                </Mapping>
+            </Image>
+        </Base_Color>
+        <Displacement>
+            <Image path="./Bricks05/Bricks05_disp.jpg">
+                <Mapping vector_type="POINT" scale="(0.5, 0.5, 0.5)">
+                    <TextureCoordinate output="UV"/>
+                </Mapping>
+            </Image>
+        </Displacement>
         <Roughness>
             <Image path="./Bricks05/Bricks05_rgh.jpg">
                 <Mapping vector_type="POINT" scale="(0.5, 0.5, 0.5)">

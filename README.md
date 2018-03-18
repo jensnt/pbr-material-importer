@@ -27,7 +27,7 @@ The basic structure you need to create looks like this:
 
 ```
 <?xml version="1.0"?>
-<PbrMaterialDescriptions version="1.0">
+<PbrMaterialDescriptions version="1.1">
     <Material name="My Material"/>
 </PbrMaterialDescriptions>
 ```
@@ -55,6 +55,7 @@ The following properties can be defined as child elements for materials:
 * ```Tangent```
 * ```Emission```
 * ```Opacity```
+* ```Displacement```
 
 For those properties supporting it:
 

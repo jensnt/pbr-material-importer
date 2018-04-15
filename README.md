@@ -69,4 +69,4 @@ The path must be relative to the XML file or absolute.
 For more options and details please refer to the Schema Definition:
 [PbrMaterialDescriptions.xsd](/PbrMaterialDescriptions.xsd)
 
-You can find an interactive visual representation of the schema [here](http://visualxsd.com/Home/LoadSavedSchema/7f98008d06ef70fc3fcaa7f90d53e62174b97bcf) on visualxsd.com.
+You can find an interactive visual representation of the schema [here](http://visualxsd.com/Home/LoadSavedSchema/f0eebb834eb31c9a6feac3d12fe925327d681076) on visualxsd.com.

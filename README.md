@@ -51,6 +51,7 @@ The following properties can be defined as child elements for materials:
 * ```IOR```
 * ```Transmission```
 * ```Normal```
+* ```Bump```
 * ```Clearcoat_Normal```
 * ```Tangent```
 * ```Emission```

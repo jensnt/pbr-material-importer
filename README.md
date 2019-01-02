@@ -10,7 +10,7 @@ To install the Add-on you need [Blender](https://www.blender.org/) in version 2.
 
 1. Download the Add-on file.
    - For Blender 2.8 or newer: [pbr-material-importer.py](https://raw.githubusercontent.com/jensnt/pbr-material-importer/master/pbr-material-importer.py)
-   - For Blender 2.79: [pbr-material-importer-v1.2.py](https://raw.githubusercontent.com/jensnt/pbr-material-importer/master/pbr-material-importer-v1.2.py)
+   - For Blender 2.79: [pbr-material-importer-v1-2.py](https://raw.githubusercontent.com/jensnt/pbr-material-importer/master/pbr-material-importer-v1-2.py)
 2. Install the Add-on by opening the Blender User Preferences and clicking on "Install Add-on from File…" at the bottom of the "Add-ons" tab to provide the file.
 3. The Add-on will not be enabled automatically. You have to enable it by checking it's check box in the Add-on list before you can use it.
 4. If you want the Add-on enabled by default every time you start Blender, click on the "Save User Settings" button at the bottom of the "Add-ons" tab.

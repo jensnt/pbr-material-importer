@@ -54,9 +54,7 @@ class pbrMaterial():
                                  "Transmission"         : "Transmission",
                                  "Normal"               : "Normal",
                                  "Clearcoat_Normal"     : "Clearcoat Normal",
-                                 "Tangent"              : "Tangent",
-                                 "Emission"             : "None",
-                                 "Opacity"              : "None"}
+                                 "Tangent"              : "Tangent"}
 
     def __init__(self, xmlMat, filepath, replace_existing):
         self.xmlMat = xmlMat

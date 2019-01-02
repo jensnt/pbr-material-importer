@@ -33,7 +33,7 @@ import math
 import re
 
 class pbrMaterial():
-    _SUPPORTED_PROPS = ["Base_Color", "Subsurface", "Subsurface_Radius", "Subsurface_Color", "Metallic", "Specular", "Specular_Tin", "Roughness", "Anisotropic", "Anisotropic_Rotation", "Sheen", "Sheen_Tint", "Clearcoat", "Clearcoat_Roughness", "IOR", "Transmission", "Normal", "Clearcoat_Normal", "Tangent", "Emission", "Opacity", "Displacement"]
+    _SUPPORTED_PROPS = ["Base_Color", "Subsurface", "Subsurface_Radius", "Subsurface_Color", "Metallic", "Specular", "Specular_Tint", "Roughness", "Anisotropic", "Anisotropic_Rotation", "Sheen", "Sheen_Tint", "Clearcoat", "Clearcoat_Roughness", "IOR", "Transmission", "Normal", "Clearcoat_Normal", "Tangent", "Emission", "Opacity", "Displacement"]
     _NON_STANDARD_PROPS   = ["Normal", "Clearcoat_Normal", "Tangent", "Emission", "Opacity", "Displacement"]
 
     _DICT_PROP_PBR_NODE_INPUT = {"Base_Color"           : "Base Color",
@@ -42,7 +42,7 @@ class pbrMaterial():
                                  "Subsurface_Color"     : "Subsurface Color",
                                  "Metallic"             : "Metallic",
                                  "Specular"             : "Specular",
-                                 "Specular_Tin"         : "Specular Tin",
+                                 "Specular_Tint"        : "Specular Tint",
                                  "Roughness"            : "Roughness",
                                  "Anisotropic"          : "Anisotropic",
                                  "Anisotropic_Rotation" : "Anisotropic Rotation",

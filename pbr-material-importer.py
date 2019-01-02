@@ -1,5 +1,5 @@
 # PBR Material Importer Add-on for Blender
-# Copyright (C) 2018  Jens Neitzel
+# Copyright (C) 2019  Jens Neitzel
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@ bl_info = {
     "name": "PBR Material Importer",
     "description": "Import Principled BSDF / PBR based materials from xml descriptions",
     "author": "Jens Neitzel",
-    "version": (1, 1),
+    "version": (1, 2),
     "blender": (2, 79, 0),
     "location": "File > Import > PBR Material Description (.xml)",
     "warning": "",
@@ -33,8 +33,8 @@ import math
 import re
 
 class pbrMaterial():
-    _SUPPORTED_PROPS = ["Base_Color", "Subsurface", "Subsurface_Radius", "Subsurface_Color", "Metallic", "Specular", "Specular_Tint", "Roughness", "Anisotropic", "Anisotropic_Rotation", "Sheen", "Sheen_Tint", "Clearcoat", "Clearcoat_Roughness", "IOR", "Transmission", "Normal", "Clearcoat_Normal", "Tangent", "Emission", "Opacity", "Displacement"]
-    _NON_STANDARD_PROPS   = ["Normal", "Clearcoat_Normal", "Tangent", "Emission", "Opacity", "Displacement"]
+    _SUPPORTED_PROPS = ["Base_Color", "Subsurface", "Subsurface_Radius", "Subsurface_Color", "Metallic", "Specular", "Specular_Tint", "Roughness", "Anisotropic", "Anisotropic_Rotation", "Sheen", "Sheen_Tint", "Clearcoat", "Clearcoat_Roughness", "IOR", "Transmission", "Normal", "Clearcoat_Normal", "Tangent", "Emission", "Opacity", "Displacement", "Bump"]
+    _NON_STANDARD_PROPS   = ["Normal", "Clearcoat_Normal", "Tangent", "Emission", "Opacity", "Displacement", "Bump"]
 
     _DICT_PROP_PBR_NODE_INPUT = {"Base_Color"           : "Base Color",
                                  "Subsurface"           : "Subsurface",
@@ -53,6 +53,7 @@ class pbrMaterial():
                                  "IOR"                  : "IOR",
                                  "Transmission"         : "Transmission",
                                  "Normal"               : "Normal",
+                                 "Bump"                 : "Normal",
                                  "Clearcoat_Normal"     : "Clearcoat Normal",
                                  "Tangent"              : "Tangent"}
 
@@ -106,6 +107,12 @@ class pbrMaterial():
         self.mat.node_tree.links.new(nodePropImg.outputs["Color"], nodeNormalMap.inputs["Color"])
         self.mat.node_tree.links.new(nodeNormalMap.outputs["Normal"], self.nodePbr.inputs[self._DICT_PROP_PBR_NODE_INPUT[xmlProp.tag]])
     
+    def _addBumpMapNode(self, xmlProp, nodePropImg):
+        nodeBumpMap = self.mat.node_tree.nodes.new(type='ShaderNodeBump')
+        nodeBumpMap.location = (250,nodePropImg.location[1])
+        self.mat.node_tree.links.new(nodePropImg.outputs["Color"], nodeBumpMap.inputs["Height"])
+        self.mat.node_tree.links.new(nodeBumpMap.outputs["Normal"], self.nodePbr.inputs[self._DICT_PROP_PBR_NODE_INPUT[xmlProp.tag]])
+    
     def _addEmissionNodes(self, xmlProp, nodePropImg):
         self.nodeEmissionAdd = self.mat.node_tree.nodes.new(type='ShaderNodeAddShader')
         self.nodeEmissionAdd.location = (1000,560)
@@ -158,10 +165,13 @@ class pbrMaterial():
         
     def _setupProperty(self, xmlProp):
         if self._isSupportedProp(xmlProp):
+            print("Creating property for {}".format(str(xmlProp)))
             if self._hasAllowedAttributeImage(xmlProp):
                 nodePropImg = self._getImgNodeMatchingProp(xmlProp).imgTexNodeObj
                 if self._isNormalProp(xmlProp):
                     self._addNormalMapNode(xmlProp, nodePropImg)
+                if self._isBumpProp(xmlProp):
+                    self._addBumpMapNode(xmlProp, nodePropImg)
                 if self._isEmissionProp(xmlProp):
                     self._addEmissionNodes(xmlProp, nodePropImg)
                 if self._isOpacityProp(xmlProp):
@@ -218,6 +228,9 @@ class pbrMaterial():
 
     def _isDisplacementProp(self, xmlProp):
         return (xmlProp.tag == "Displacement")
+
+    def _isBumpProp(self, xmlProp):
+        return (xmlProp.tag == "Bump")
 
     def _isImgAllowedProp(self, xmlProp):
         return self._isSupportedProp(xmlProp) and (xmlProp.tag != "Tangent")

@@ -18,9 +18,12 @@ bl_info = {
     "name": "PBR Material Importer",
     "description": "Import Principled BSDF / PBR based materials from xml descriptions",
     "author": "Jens Neitzel",
-    "version": (1, 2),
-    "blender": (2, 79, 0),
+    "version": (1, 3),
+    "blender": (2, 80, 0),
     "location": "File > Import > PBR Material Description (.xml)",
+    "url": "https://github.com/jensnt/pbr-material-importer",
+    "wiki_url": "https://github.com/jensnt/pbr-material-importer",
+    "tracker_url": "https://github.com/jensnt/pbr-material-importer/issues",
     "warning": "",
     "support": "COMMUNITY",
     "category": "Import-Export"
@@ -300,7 +303,7 @@ class nodeTexImage():
         if self.texCoordNodeObj != None:
             self.texCoordNodeObj.location = (location[0]-660,location[1])
 
-class PbrMaterialImporter(bpy.types.Operator):
+class PBR_MATERIAL_IMPORTER_OT_import(bpy.types.Operator):
     """PBR Material Importer"""
     bl_idname = "pbr_material_importer.import"
     bl_label = "Import PBR Materials from XML"
@@ -311,11 +314,11 @@ class PbrMaterialImporter(bpy.types.Operator):
     _MAX_MAJOR_XML_VERSION = 1
     _MAX_MINOR_XML_VERSION = 1
     
-    filepath = bpy.props.StringProperty(subtype='FILE_PATH')
-    filter_glob = bpy.props.StringProperty(default="*.xml", options={'HIDDEN'})
-    replace_existing = bpy.props.BoolProperty(name="Replace existing Materials",
-                                              description="Existing Materials with the same name as the imported ones will be replaced",
-                                              default=False)
+    filepath: bpy.props.StringProperty(subtype='FILE_PATH')
+    filter_glob: bpy.props.StringProperty(default="*.xml", options={'HIDDEN'})
+    replace_existing: bpy.props.BoolProperty(name="Replace existing Materials",
+                                             description="Existing Materials with the same name as the imported ones will be replaced",
+                                             default=False)
     
     def execute(self, context):
         # Create new materials from XML file
@@ -346,15 +349,25 @@ class PbrMaterialImporter(bpy.types.Operator):
         return False
 
 def menu_import(self, context):
-    self.layout.operator(PbrMaterialImporter.bl_idname, text="PBR Material Description (.xml)")
+    self.layout.operator(PBR_MATERIAL_IMPORTER_OT_import.bl_idname, text="PBR Material Description (.xml)")
 
 def register():
-    bpy.utils.register_class(PbrMaterialImporter)
-    bpy.types.INFO_MT_file_import.append(menu_import)
+    bpy.utils.register_class(PBR_MATERIAL_IMPORTER_OT_import)
+    # Add import menu item
+    if hasattr(bpy.types, 'TOPBAR_MT_file_import'):
+        #2.8+
+        bpy.types.TOPBAR_MT_file_import.append(menu_import)
+    else:
+        bpy.types.INFO_MT_file_import.append(menu_import)
 
 def unregister():
-    bpy.utils.unregister_class(PbrMaterialImporter)
-    bpy.types.INFO_MT_file_import.remove(menu_import)
+    bpy.utils.unregister_class(PBR_MATERIAL_IMPORTER_OT_import)
+    # Remove import menu item
+    if hasattr(bpy.types, 'TOPBAR_MT_file_import'):
+        #2.8+
+        bpy.types.TOPBAR_MT_file_import.remove(menu_import)
+    else:
+        bpy.types.INFO_MT_file_import.remove(menu_import)
 
 if __name__ == "__main__":
     register()

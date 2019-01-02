@@ -40,7 +40,7 @@ The following properties can be defined as child elements for materials:
 * ```Subsurface_Color```
 * ```Metallic```
 * ```Specular```
-* ```Specular_Tin```
+* ```Specular_Tint```
 * ```Roughness```
 * ```Anisotropic```
 * ```Anisotropic_Rotation```

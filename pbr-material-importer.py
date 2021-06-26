@@ -95,7 +95,8 @@ class pbrMaterial():
                 imgPath = self._getImgPathOfProp(matProperty)
                 if (imgPath != None) and (self._getImgNodeMatchingProp(matProperty) == None):
                     self.imgNodes.append(nodeTexImage(self.xmlFilepath, self.mat, matProperty.find('Image')))
-                    self.imgNodes[-1].imgTexNodeObj.color_space = self._getDefaultColorSpace(prop)
+                    print(self.imgNodes[-1].imgTexNodeObj.image)
+                    self.imgNodes[-1].imgTexNodeObj.image.colorspace_settings.name = self._getDefaultColorSpace(prop)
         for i in range(0, len(self.imgNodes)):
             self.imgNodes[i].setLocation((0,(-300*i)+(len(self.imgNodes)*300/2)+300))
             
@@ -181,7 +182,7 @@ class pbrMaterial():
                     self._addOpacityNodes(xmlProp, nodePropImg)
                 if self._isDisplacementProp(xmlProp):
                     self.mat.node_tree.links.new(nodePropImg.outputs["Color"], self.nodeMatOut.inputs["Displacement"])
-                    self.mat.cycles.displacement_method = 'TRUE'
+                    self.mat.cycles.displacement_method = 'BOTH'
                 if self._isStandardProp(xmlProp):
                     self.mat.node_tree.links.new(nodePropImg.outputs["Color"], self.nodePbr.inputs[self._DICT_PROP_PBR_NODE_INPUT[xmlProp.tag]])
             elif self._hasAllowedAttributeDefaultValue(xmlProp):
@@ -209,7 +210,7 @@ class pbrMaterial():
     
     def _matchImgNodeProp(self, imgNode, xmlProp):
         propColorSpace = self._getDefaultColorSpace(xmlProp.tag)
-        return (imgNode.imagePath == self._getImgPathOfProp(xmlProp)) and (imgNode.imgTexNodeObj.color_space == propColorSpace)
+        return (imgNode.imagePath == self._getImgPathOfProp(xmlProp)) and (imgNode.imgTexNodeObj.image.colorspace_settings.name == propColorSpace)
     
     def _isSupportedProp(self, xmlProp):
         return (xmlProp.tag in self._SUPPORTED_PROPS)
@@ -252,9 +253,9 @@ class pbrMaterial():
     
     def _getDefaultColorSpace(self, prop):
         if (prop == "Base_Color") or (prop == "Subsurface_Color") or (prop == "Emission"):
-            return 'COLOR'
+            return 'sRGB'
         else:
-            return 'NONE'
+            return 'Non-Color'
 
 class nodeTexImage():
     def __init__(self, xmlFilepath, bpyMaterial, xmlImageElement):
@@ -281,20 +282,14 @@ class nodeTexImage():
             if self.xmlMapping.get('vector_type') != None:
                 self.mappingNodeObj.vector_type = self.xmlMapping.get('vector_type')
             if self.xmlMapping.get('location') != None:
-                self.mappingNodeObj.translation = eval(self.xmlMapping.get('location'))
+                self.mappingNodeObj.inputs['Location'].default_value = eval(self.xmlMapping.get('location'))
             if self.xmlMapping.get('rotation') != None:
                 rotX = math.radians(eval(self.xmlMapping.get('rotation'))[0])
                 rotY = math.radians(eval(self.xmlMapping.get('rotation'))[1])
                 rotZ = math.radians(eval(self.xmlMapping.get('rotation'))[2])
-                self.mappingNodeObj.rotation = (rotX,rotY,rotZ)
+                self.mappingNodeObj.inputs['Rotation'].default_value = (rotX,rotY,rotZ)
             if self.xmlMapping.get('scale') != None:
-                self.mappingNodeObj.scale = eval(self.xmlMapping.get('scale'))
-            if self.xmlMapping.get('min') != None:
-                self.mappingNodeObj.use_min = True
-                self.mappingNodeObj.min = eval(self.xmlMapping.get('min'))
-            if self.xmlMapping.get('max') != None:
-                self.mappingNodeObj.use_max = True
-                self.mappingNodeObj.max = eval(self.xmlMapping.get('max'))
+                self.mappingNodeObj.inputs['Scale'].default_value = eval(self.xmlMapping.get('scale'))
         
     def setLocation(self, location):
         self.imgTexNodeObj.location = location
